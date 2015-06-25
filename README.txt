@@ -48,7 +48,7 @@ To create a logging profile:
 Feedback and Contact
 --------------------
 
-If you have Feedback, issues or questions please use issue tracker at Github page: http://github.com/blafasel  ;). 
+If you have Feedback, issues or questions please use issue tracker at Github page: http://github.com/Nexinto/f5_asm  ;). 
 For direct Feedback please contact: splunkapps@nexinto.com. 
 
 This app was created by:
