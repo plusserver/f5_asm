@@ -1,0 +1,97 @@
+<dashboard showsource="false" script="prettify.js" >
+  <label>Help</label>
+  <row>
+    <panel>
+      <html>
+      <b>
+        <h2>F5 WAF Security for Splunk by Nexinto</h2>
+      </b>
+      <br/>
+        
+        <h3>Overview</h3>
+
+      <br/>
+        
+      The app "F5 WAF Security for Splunk by Nexinto" analyzes attacks on your web infrastructure prohibited by F5 ASM.
+      
+        
+      <br/>
+
+     <hr/>
+Features:
+        		
+	<ul><li>Displays attacks based on GeoIP</li></ul>
+	<ul><li>Displays attacks based on Type</li></ul>
+	<ul><li>Displays attacks based on Violation, Signature</li></ul>
+	<ul><li>Displays attacks based on Country</li></ul>
+	<ul><li>Displays attacks based on IPs</li></ul>
+	<ul><li>Heatmap for Attack Type Distribution by Type, Country, Violation</li></ul>
+	<ul><li>Security Stats table for displaying chronological attack requests and locations</li></ul>
+
+  <br/><br/>
+        
+	<h3>Installation</h3>
+        
+Deploy "F5 WAF Security for Splunk by Nexinto" like every other App by uploading  it using the WebGUI or extracting it to $SPLUNK_HOME$/etc/apps. 
+Restart Splunk afterwards.
+<br/><br/>
+In a distributed environment the app has to be deployed to every Search head and Indexer. Make sure the app is also deployed on the Host or 
+Forwarder receiving the events from the F5 devices. 
+<br/><br/>
+With default settings the app will create an index “f5_asm_live” and a TCP input on port 10005 using sourcetype syslog_f5asm. You can customize these 
+settings by changing the TCP port in inputs.conf.
+
+<br/><br/>  
+
+
+<h3>Creating a logging profile on F5 ASM for sending Events to Splunk</h3>   
+        
+To integrate Splunk you will need to create a new logging profile on your F5 ASM which sends the events to your Splunk TCP input. 
+<br/><br/>
+
+To create a logging profile:
+<br/>
+
+	<ol>
+		<li>On the Main Tab select Security, expand Event Logs. The Edit Logging Profile page opens.</li>
+		<li>Check "Application Security" in the Logging Profile Properties.</li>
+		<li>At Application Security tab select “Advanced” for Configuration setting.</li>
+		<li>Select the Remote Storage check box, and for the Type select Reporting Server.</li>
+		<li>Set Response Logging to Off.</li>
+		<li>For the protocol setting, select TCP.</li>
+		<li>For the IP Address setting, type the name of the host providing the TCP input (forwarder or indexer)</li>
+		<li>For the Port setting type the default value 10005.</li>
+		<li>Within the Storage Filter tab choose Request type = "Illegal Requests Only"</li>
+		<li>Click the “Update” Button.</li>
+     </ol>
+
+<br/><br/>
+	 
+<img src="/static/app/f5_asm/asm_profile.png" width="900"></img>
+	 
+<br/><br/>
+<h3>Feedback and Contact</h3>             
+
+If you have Feedback, issues or questions please use issue tracker at Github page: http://github.com/blafasel . 
+For direct Feedback please contact: splunkapps@nexinto.com.  
+
+        <br/><br/>
+This app was created by:
+
+<br/> <br/>
+Nexinto GmbH<br/>
+Nagelsweg 33-35<br/>
+20097 Hamburg
+<br/><br/>
+Telefon: +49 40-77175-0<br/>
+Telefax: +49 40-77175-519
+<br/><br/>
+E-Mail: splunkapps@nexinto.com<br/>
+Internet: www.nexinto.com<br/>
+      
+      
+      
+      </html>
+    </panel>
+  </row>
+</dashboard>

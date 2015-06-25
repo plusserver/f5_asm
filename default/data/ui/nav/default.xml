@@ -1,0 +1,19 @@
+<nav search_view="search" color="#65A637">
+   <view name="f5_asm_live" />
+    
+            <view name="asm_attack_types" default='true'/>
+            <view name="asm_attack_types_numbers" />
+      		<view name="security_stats" />
+  
+  <view name="help" />
+  <view name="search" />
+  
+
+<!--
+  <view name="search" default='true' />
+  <view name="data_models" />
+  <view name="reports" />
+  <view name="alerts" />
+  <view name="dashboards" />
+-->
+</nav>

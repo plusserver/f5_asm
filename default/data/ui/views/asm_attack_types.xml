@@ -1,0 +1,449 @@
+<form>
+  <label>Security Dashboard</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="dropdown" searchWhenChanged="true" token="attack_type">
+      <label>Select Attack Type:</label>
+      <default>*</default>
+      <populatingSearch fieldForLabel="attack_type" fieldForValue="attack_type" earliest="$earliest$" latest="$latest$">index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type geo_location="$geo_location$" ip_client="$ip_client$" | dedup attack_type | sort attack_type | table attack_type</populatingSearch>
+      <choice value="*">all</choice>
+    </input>
+    <input type="dropdown" searchWhenChanged="true" token="geo_location">
+      <label>Select Country:</label>
+      <default>*</default>
+      <populatingSearch fieldForLabel="geo_location" fieldForValue="geo_location" earliest="$earliest$" latest="$latest$">index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm geo_location attack_type="$attack_type$" ip_client="$ip_client$" | dedup geo_location | sort geo_location | table geo_location</populatingSearch>
+      <choice value="*">all</choice>
+    </input>
+    <input type="dropdown" searchWhenChanged="true" token="ip_client">
+      <label>Select Client IP:</label>
+      <default>*</default>
+      <populatingSearch fieldForLabel="ip_client" fieldForValue="ip_client" earliest="$earliest$" latest="$latest$">index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm geo_location="$geo_location$" attack_type="$attack_type$" | dedup ip_client | sort ip_client | table ip_client</populatingSearch>
+      <choice value="*">all</choice>
+    </input>
+    <input type="dropdown" searchWhenChanged="true" token="dest_ip">
+      <label>Select Destination IP:</label>
+      <default>*</default>
+      <populatingSearch fieldForLabel="dest_ip" fieldForValue="dest_ip" earliest="$earliest$" latest="$latest$">index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm geo_location="$geo_location$" attack_type="$attack_type$" | dedup dest_ip | sort dest_ip | table dest_ip</populatingSearch>
+      <choice value="*">all</choice>
+    </input>
+    <input type="text" token="support_id" searchWhenChanged="true">
+      <label>Select Support ID</label>
+      <default>*</default>
+    </input>
+    <input type="time" searchWhenChanged="true">
+      <label>Select Time:</label>
+      <default>
+        <earliest>-4h@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Security Metrics</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type attack_type="$attack_type$" ip_client="$ip_client$" dest_ip="$dest_ip$" geo_location="$geo_location$" support_id="*$support_id$*" | stats count</query>
+        </search>
+        <option name="underLabel">Attacks</option>
+        <option name="linkView">search</option>
+        <option name="drilldown">none</option>
+      </single>
+      <single>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type="$attack_type$" ip_client="$ip_client$" dest_ip="$dest_ip$" geo_location="$geo_location$" support_id="*$support_id$*" | table geo_location | dedup geo_location | stats count</query>
+        </search>
+        <option name="underLabel">Countries</option>
+        <option name="linkView">search</option>
+        <option name="drilldown">none</option>
+      </single>
+      <single>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type="$attack_type$" ip_client="$ip_client$" dest_ip="$dest_ip$" geo_location="$geo_location$" support_id="*$support_id$*" | table ip_client | dedup ip_client | stats count</query>
+        </search>
+        <option name="underLabel">Unique IPs</option>
+        <option name="linkView">search</option>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <map>
+        <title>Attack Map based on GeoIP</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type="$attack_type$" ip_client="$ip_client$" dest_ip="$dest_ip$" geo_location="$geo_location$" support_id="*$support_id$*" | iplocation ip_client | geostats count by attack_type</query>
+        </search>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.drilldown">all</option>
+        <option name="mapping.map.center">(0,0)</option>
+        <option name="mapping.map.zoom">2</option>
+        <option name="mapping.markerLayer.markerMaxSize">50</option>
+        <option name="mapping.markerLayer.markerMinSize">10</option>
+        <option name="mapping.markerLayer.markerOpacity">0.8</option>
+        <option name="mapping.tileLayer.maxZoom">7</option>
+        <option name="mapping.tileLayer.minZoom">0</option>
+        <option name="drilldown">all</option>
+      </map>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Attack Type Distribution by Type Over Time</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm attack_type="$attack_type$" ip_client="$ip_client$" dest_ip="$dest_ip$" geo_location="$geo_location$" support_id="*$support_id$*" | timechart count by attack_type useother=no limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Attack Distribution by Country Over Time</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm geo_location ip_client="$ip_client$" dest_ip="$dest_ip$" attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*"| timechart count by geo_location useother=no limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Attacking Types</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top limit=10 attack_type useother=no</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Events by Attack Type</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Spreading Top Attacking Types</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top limit=10 attack_type useother=no</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Attacking by Violation</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm violations ip_client="$ip_client$" dest_ip="$dest_ip$" attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | rex field=violations mode=sed "s/violations=//g"  | top violations limit=10 useother=no</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Spreading Top Attacking by Violation</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm violations ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | rex field=violations mode=sed "s/violations=//g"  | top violations limit=10 useother=no</query>
+        </search>&gt;<option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Attacking by Signature</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" NOT sig_names="sig_names=\"\"" | rex field=sig_names mode=sed "s/sig_names=//g" | top sig_names limit=10 useother=no</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Spreading Top Attacking by Signature</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" NOT sig_names="sig_names=\"\"" | rex field=sig_names mode=sed "s/sig_names=//g" | top sig_names limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Attacking Countries</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top geo_location limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Spreading Top Attacking Countries</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top geo_location limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Attacking IPs</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top ip_client limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Spreading Top Attacking IPs</title>
+        <search>
+          <query>index="f5_asm_live" sourcetype=syslog OR sourcetype=syslog_f5asm ip_client="$ip_client$" dest_ip="$dest_ip$"  attack_type="$attack_type$" geo_location="$geo_location$" support_id="*$support_id$*" | top ip_client limit=10</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+      </chart>
+    </panel>
+  </row>
+</form>
