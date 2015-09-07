@@ -5,9 +5,10 @@
             <view name="asm_attack_types_numbers" />
       		<view name="security_stats" />
   
+  <view name="Nexinto GmbH" />
   <view name="help" />
   <view name="search" />
-  
+  <a href="http://nexinto.com">powered by Nexinto GmbH</a>
 
 <!--
   <view name="search" default='true' />
